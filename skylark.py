@@ -623,6 +623,7 @@ class SelectResult(object):
             if isinstance(node, Alias) and isinstance(node.inst, Field) \
                     and node.inst.model is model:
                 setattr(inst, node.name, row[idx])
+        inst.cache()
         return inst
 
     def __one(self, row):
@@ -776,7 +777,7 @@ class Compiler(object):
 
     def st2sql(lst):
         pairs = [
-            sql.format('%s=%%s' % expr.left.name, compiler.sql(expr.right))
+            sql.format('`%s`=%%s' % expr.left.name, compiler.sql(expr.right))
             for expr in lst]
         return sql.join(', ', pairs)
 
@@ -954,6 +955,10 @@ class Model(MetaModel('NewBase', (dict, ), {})):  # py3 compat
 
     def set_in_db(self, boolean):
         self._in_db = boolean
+
+    def cache(self):
+        self._cache = self.copy()
+        pass
 
     def __kwargs(func):
         @classmethod
